@@ -1,0 +1,38 @@
+# Deploy: `fly deploy` (after `fly launch` / app name set below).
+#
+# Scale to zero (small cost when idle):
+#   [http_service] uses auto_stop_machines = "stop", min_machines_running = 0
+#   First request after idle may take a few seconds while a Machine starts.
+#
+# Persistent JSON (TIMERS_DATA_PATH) needs a Fly Volume. Size is set here via initial_size
+# (used when fly deploy creates a new volume). You can also create one manually, e.g.:
+#   fly volumes create timer_data --region <same-as-primary_region> --size 1
+#   (--size is in GB; Fly does not offer MB-sized volumes — smallest is 1 GB.)
+#
+# Your timers file will only use a few KB; the rest of the volume is unused but that’s normal.
+
+app = "time-since-date-app"
+primary_region = "dfw"
+
+[env]
+  TIMERS_DATA_PATH = "/data/timers.json"
+
+[http_service]
+  # Must match process.env.PORT (Fly typically sets PORT=8080).
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ["app"]
+
+[[vm]]
+  memory = "256mb"
+  cpu_kind = "shared"
+  cpus = 1
+
+[[mounts]]
+  source = "timer_data"
+  destination = "/data"
+  # Smallest volume Fly provisions for new volumes (GB only; 64 MB is not available).
+  initial_size = 1

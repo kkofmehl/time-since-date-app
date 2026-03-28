@@ -1,0 +1,4 @@
+node_modules/
+data/timers.json
+.env
+.DS_Store
